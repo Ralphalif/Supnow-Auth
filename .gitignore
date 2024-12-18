@@ -20,3 +20,6 @@ appsettings.Production.json
 ## Logs
 *.log
 logs/
+
+## Database files
+data/

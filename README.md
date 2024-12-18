@@ -17,6 +17,33 @@ A secure authentication service implementation using .NET Core 8.0, featuring JW
 - HTTPS enforcement
 - Docker support
 - PostgreSQL database
+- Comprehensive test coverage
+
+## Project Structure
+
+```
+├── src/
+│   └── Supnow-Auth/
+│       ├── Controllers/
+│       │   └── AuthController.cs     # Authentication endpoints
+│       ├── Services/
+│       │   ├── AuthService.cs       # Authentication business logic
+│       │   └── IEmailService.cs     # Email service interface
+│       ├── Models/
+│       │   ├── ApplicationUser.cs   # User entity model
+│       │   ├── AuthModels.cs       # Request/Response models
+│       │   └── ErrorResponse.cs    # Standard error response model
+│       ├── Data/
+│       │   └── ApplicationDbContext.cs # Database context
+│       └── Middleware/
+│           └── SecurityHeadersMiddleware.cs  # Security headers
+├── tests/
+│   └── Supnow-Auth.Tests/
+│       ├── AuthControllerTests.cs   # Controller unit tests
+│       └── AuthServiceTests.cs      # Service unit tests
+├── Dockerfile
+└── docker-compose.yml
+```
 
 ## Prerequisites
 
@@ -25,27 +52,36 @@ A secure authentication service implementation using .NET Core 8.0, featuring JW
 - PostgreSQL (containerized or local)
 - SMTP server for email verification
 
-## Project Structure
+## Development
 
-```
-├── Controllers/
-│   └── AuthController.cs        # Authentication endpoints
-├── Services/
-│   ├── AuthService.cs          # Authentication business logic
-│   └── IEmailService.cs        # Email service interface
-├── Models/
-│   ├── ApplicationUser.cs      # User entity model
-│   └── AuthModels.cs          # Request/Response models
-├── Data/
-│   └── ApplicationDbContext.cs # Database context
-├── Middleware/
-│   └── SecurityHeadersMiddleware.cs  # Security headers
-└── Program.cs                  # Application configuration
+### Local Setup
+
+1. Clone the repository
+2. Update configuration in appsettings.json
+3. Run with Docker Compose or locally
+
+### Running Locally
+
+```bash
+dotnet restore
+dotnet build
+dotnet run --project src/Supnow-Auth/Supnow-Auth.csproj
 ```
 
-## Docker Setup
+### Running Tests
 
-### 1. Build and Run with Docker Compose
+```bash
+# Run all tests
+dotnet test
+
+# Run tests with coverage
+dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=lcov
+
+# Run specific test project
+dotnet test tests/Supnow-Auth.Tests/Supnow-Auth.Tests.csproj
+```
+
+### Docker Setup
 
 ```bash
 # Build and start the containers
@@ -58,29 +94,73 @@ docker-compose logs -f
 docker-compose down
 ```
 
+### Data Persistence
+
+The PostgreSQL data is persisted in a local directory at `./data/postgres`. This ensures:
+- Data survives container restarts and removals
+- Easy access to database files for backup
+- Direct inspection of data files when needed
+
+```bash
+# To completely reset the database (warning: destroys all data)
+rm -rf ./data/postgres/*
+```
+
 The services will be available at:
 - API: http://localhost:5002 and https://localhost:5003
 - Database: localhost:5433
 
-### 2. Configuration
+## API Endpoints
 
-Update `appsettings.json` for your environment:
+### Authentication Endpoints
 
+#### Register New User
+```http
+POST /api/auth/register
+Content-Type: application/json
+
+{
+    "email": "user@example.com",
+    "password": "SecurePass123!",
+    "confirmPassword": "SecurePass123!"
+}
+```
+
+Response:
 ```json
 {
-  "Jwt": {
-    "Key": "Your-Very-Long-And-Secure-Secret-Key-Here",
-    "Issuer": "YourAppName",
-    "Audience": "YourAppUsers"
-  },
-  "ConnectionStrings": {
-    "DefaultConnection": "Host=auth-db;Database=supnow_auth;Username=postgres;Password=your_password"
-  },
-  "AllowedOrigins": [
-    "http://localhost:3000",
-    "http://localhost:5002",
-    "https://localhost:5003"
-  ]
+    "token": "eyJhbGciOiJIUzI1NiIs...",
+    "refreshToken": "random-refresh-token",
+    "expiresIn": 3600,
+    "requiresTwoFactor": false
+}
+```
+
+Error Response:
+```json
+{
+    "message": "Registration failed"
+}
+```
+
+#### Login
+```http
+POST /api/auth/login
+Content-Type: application/json
+
+{
+    "email": "user@example.com",
+    "password": "SecurePass123!"
+}
+```
+
+#### Refresh Token
+```http
+POST /api/auth/refresh-token
+Content-Type: application/json
+
+{
+    "refreshToken": "your-refresh-token"
 }
 ```
 
@@ -108,116 +188,36 @@ Update `appsettings.json` for your environment:
   - Special characters
 - Secure hashing using ASP.NET Core Identity
 
-## API Endpoints
+## Testing
 
-### API Documentation
-The API documentation is available through Swagger UI at:
-- Development: https://localhost:5003/swagger
-- Docker: http://localhost:5002/swagger
+The project includes comprehensive unit tests for both controllers and services:
 
-Swagger provides:
-- Interactive API documentation
-- Request/response examples
-- Try-it-out functionality
-- Bearer token authentication
+### Controller Tests
+- Registration validation
+- Login authentication
+- Token refresh
+- Error handling
+- Response type validation
 
-### Authentication Endpoints
+### Service Tests
+- User registration logic
+- Login validation
+- Token generation and validation
+- Password strength validation
+- Account lockout functionality
 
-#### Register New User
-```http
-POST /api/auth/register
-Content-Type: application/json
-
-{
-    "email": "user@example.com",
-    "password": "SecurePass123!",
-    "confirmPassword": "SecurePass123!"
-}
-```
-
-#### Login
-```http
-POST /api/auth/login
-Content-Type: application/json
-
-{
-    "email": "user@example.com",
-    "password": "SecurePass123!"
-}
-```
-
-#### Refresh Token
-```http
-POST /api/auth/refresh-token
-Content-Type: application/json
-
-{
-    "refreshToken": "your-refresh-token"
-}
-```
-
-### Response Format
-```json
-{
-    "token": "eyJhbGciOiJIUzI1NiIs...",
-    "refreshToken": "random-refresh-token",
-    "expiresIn": 3600,
-    "requiresTwoFactor": false
-}
-```
-
-## Development
-
-### Local Setup
-
-1. Clone the repository
-2. Update configuration in appsettings.json
-3. Run with Docker Compose or locally
-
-### Running Locally
+### Running Tests with Coverage
 
 ```bash
-dotnet restore
-dotnet run
+dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=lcov /p:CoverletOutput=./lcov.info
 ```
-
-### Database Migrations
-
-```bash
-# Create migration
-dotnet ef migrations add InitialCreate -o Data/Migrations
-
-# Apply migration
-dotnet ef database update
-```
-
-### Database Optimization
-
-The service uses the following indexes for optimal performance:
-
-#### User Table Indexes
-- `IX_Users_Email`: Optimizes email-based lookups during authentication
-- `IX_Users_RefreshToken`: Unique index for refresh token validation
-- `IX_Users_LoginAttempts`: Composite index for monitoring login attempts and lockouts
-
-#### Role Table Indexes
-- `IX_Roles_Name`: Optimizes role-based queries
-
-#### UserRoles Table Indexes
-- `IX_UserRoles_Composite`: Composite index for efficient role assignments
-
-These indexes improve performance for:
-- Authentication requests
-- Token refresh operations
-- Role-based access control
-- Security monitoring
 
 ## Contributing
 
 1. Fork the repository
 2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
+3. Add tests for new functionality
+4. Ensure all tests pass
 5. Create a Pull Request
 
 ## License

@@ -5,9 +5,10 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
-COPY ["Supnow-Auth.csproj", "./"]
-RUN dotnet restore "Supnow-Auth.csproj"
+COPY ["src/Supnow-Auth/Supnow-Auth.csproj", "src/Supnow-Auth/"]
+RUN dotnet restore "src/Supnow-Auth/Supnow-Auth.csproj"
 COPY . .
+WORKDIR "/src/src/Supnow-Auth"
 RUN dotnet build "Supnow-Auth.csproj" -c Release -o /app/build
 
 FROM build AS publish

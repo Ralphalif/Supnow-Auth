@@ -10,6 +10,7 @@ services:
       - "5003:443"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80;https://+:443
       - ConnectionStrings__DefaultConnection=Host=auth-db;Database=supnow_auth;Username=postgres;Password=glory2god;Include Error Detail=true
     depends_on:
       - auth-db
@@ -25,12 +26,14 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - ./data/postgres:/var/lib/postgresql/data
     networks:
       - auth-network
 
 volumes:
   postgres_data:
+    external: true
+    name: supnow_auth_postgres_data
 
 networks:
   auth-network:
