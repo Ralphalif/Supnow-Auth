@@ -56,11 +56,14 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("DefaultPolicy", policy =>
     {
-        policy.WithOrigins(configuration["AllowedOrigins"] ?? "*")
-              .AllowAnyMethod()
-              .AllowAnyHeader()
-              .WithExposedHeaders("Token-Expired")
-              .AllowCredentials();
+        var origins = configuration.GetSection("AllowedOrigins").Get<string[]>() 
+            ?? new[] { "http://localhost:3000" };
+            
+        policy.WithOrigins(origins)
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .WithExposedHeaders("Token-Expired")
+            .AllowCredentials();
     });
 });
 

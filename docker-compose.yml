@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  auth-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5002:80"
+      - "5003:443"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=auth-db;Database=supnow_auth;Username=postgres;Password=glory2god;Include Error Detail=true
+    depends_on:
+      - auth-db
+    networks:
+      - auth-network
+
+  auth-db:
+    image: postgres:latest
+    environment:
+      - POSTGRES_DB=supnow_auth
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=glory2god
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - auth-network
+
+volumes:
+  postgres_data:
+
+networks:
+  auth-network:
+    driver: bridge 
