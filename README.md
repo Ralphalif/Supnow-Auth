@@ -110,6 +110,17 @@ Update `appsettings.json` for your environment:
 
 ## API Endpoints
 
+### API Documentation
+The API documentation is available through Swagger UI at:
+- Development: https://localhost:5003/swagger
+- Docker: http://localhost:5002/swagger
+
+Swagger provides:
+- Interactive API documentation
+- Request/response examples
+- Try-it-out functionality
+- Bearer token authentication
+
 ### Authentication Endpoints
 
 #### Register New User
