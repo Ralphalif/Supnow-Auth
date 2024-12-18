@@ -1,6 +1,0 @@
-@Supnow_Auth_HostAddress = http://localhost:5052
-
-GET {{Supnow_Auth_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
