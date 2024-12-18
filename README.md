@@ -107,7 +107,7 @@ rm -rf ./data/postgres/*
 ```
 
 The services will be available at:
-- API: http://localhost:5002 and https://localhost:5003
+- API: http://localhost:5002
 - Database: localhost:5433
 
 ## API Endpoints

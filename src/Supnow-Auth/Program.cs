@@ -168,11 +168,33 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 
 var app = builder.Build();
 
-// Apply migrations
+// Apply migrations with retry logic
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    db.Database.Migrate();
+    var retryCount = 0;
+    const int maxRetries = 5;
+    var delay = TimeSpan.FromSeconds(5);
+
+    while (retryCount < maxRetries)
+    {
+        try
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            db.Database.Migrate();
+            break;
+        }
+        catch (Exception ex)
+        {
+            retryCount++;
+            if (retryCount == maxRetries)
+                throw;
+
+            app.Logger.LogWarning(ex, "Database connection attempt {Attempt} of {MaxAttempts} failed. Retrying in {Delay} seconds...", 
+                retryCount, maxRetries, delay.TotalSeconds);
+            
+            Thread.Sleep(delay);
+        }
+    }
 }
 
 // Configure the HTTP request pipeline.
@@ -180,6 +202,10 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+}
+else
+{
+    app.UseHttpsRedirection();
 }
 
 // Use security headers middleware
@@ -199,7 +225,6 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
 app.UseCors("DefaultPolicy");
 app.UseAuthentication();
 app.UseAuthorization();

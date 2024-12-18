@@ -7,15 +7,16 @@ services:
       dockerfile: Dockerfile
     ports:
       - "5002:80"
-      - "5003:443"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=http://+:80;https://+:443
+      - ASPNETCORE_URLS=http://+:80
       - ConnectionStrings__DefaultConnection=Host=auth-db;Database=supnow_auth;Username=postgres;Password=glory2god;Include Error Detail=true
     depends_on:
-      - auth-db
+      auth-db:
+        condition: service_healthy
     networks:
       - auth-network
+    restart: unless-stopped
 
   auth-db:
     image: postgres:latest
@@ -29,6 +30,12 @@ services:
       - ./data/postgres:/var/lib/postgresql/data
     networks:
       - auth-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
 
 volumes:
   postgres_data:
@@ -37,4 +44,4 @@ volumes:
 
 networks:
   auth-network:
-    driver: bridge 
+    driver: bridge
