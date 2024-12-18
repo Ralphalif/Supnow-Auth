@@ -180,6 +180,27 @@ dotnet ef migrations add InitialCreate -o Data/Migrations
 dotnet ef database update
 ```
 
+### Database Optimization
+
+The service uses the following indexes for optimal performance:
+
+#### User Table Indexes
+- `IX_Users_Email`: Optimizes email-based lookups during authentication
+- `IX_Users_RefreshToken`: Unique index for refresh token validation
+- `IX_Users_LoginAttempts`: Composite index for monitoring login attempts and lockouts
+
+#### Role Table Indexes
+- `IX_Roles_Name`: Optimizes role-based queries
+
+#### UserRoles Table Indexes
+- `IX_UserRoles_Composite`: Composite index for efficient role assignments
+
+These indexes improve performance for:
+- Authentication requests
+- Token refresh operations
+- Role-based access control
+- Security monitoring
+
 ## Contributing
 
 1. Fork the repository

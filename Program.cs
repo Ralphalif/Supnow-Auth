@@ -83,8 +83,13 @@ builder.Services.Configure<IdentityOptions>(options =>
 
 // Add PostgreSQL support
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
+{
+    var connectionString = builder.Environment.IsDevelopment() 
+        ? configuration.GetConnectionString("DefaultConnection")
+        : configuration.GetConnectionString("DockerConnection");
+
     options.UseNpgsql(
-        configuration.GetConnectionString("DefaultConnection"),
+        connectionString,
         npgsqlOptions => 
         {
             npgsqlOptions.EnableRetryOnFailure(
@@ -92,7 +97,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 maxRetryDelay: TimeSpan.FromSeconds(30),
                 errorCodesToAdd: null);
         }
-    ));
+    );
+});
 
 // Add Identity configuration
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
@@ -116,6 +122,13 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 .AddDefaultTokenProviders();
 
 var app = builder.Build();
+
+// Apply migrations
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    db.Database.Migrate();
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

@@ -3,6 +3,7 @@ using System;
 using Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace SupnowAuth.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241218192207_InitialCreate")]
+    partial class InitialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -40,9 +43,6 @@ namespace SupnowAuth.Data.Migrations
                         .HasColumnType("character varying(256)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Name")
-                        .HasDatabaseName("IX_Roles_Name");
 
                     b.HasIndex("NormalizedName")
                         .IsUnique()
@@ -134,9 +134,6 @@ namespace SupnowAuth.Data.Migrations
                     b.HasKey("UserId", "RoleId");
 
                     b.HasIndex("RoleId");
-
-                    b.HasIndex("UserId", "RoleId")
-                        .HasDatabaseName("IX_UserRoles_Composite");
 
                     b.ToTable("UserRoles", (string)null);
                 });
@@ -236,22 +233,12 @@ namespace SupnowAuth.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Email")
-                        .HasDatabaseName("IX_Users_Email");
-
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
 
                     b.HasIndex("NormalizedUserName")
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex");
-
-                    b.HasIndex("RefreshToken")
-                        .IsUnique()
-                        .HasDatabaseName("IX_Users_RefreshToken");
-
-                    b.HasIndex("LastLoginAttempt", "FailedLoginAttempts")
-                        .HasDatabaseName("IX_Users_LoginAttempts");
 
                     b.ToTable("Users", (string)null);
                 });
