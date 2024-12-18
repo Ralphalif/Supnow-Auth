@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using Services;
 using Models;
 using System.Security.Authentication;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 
 namespace Controllers
 {
@@ -30,8 +32,8 @@ namespace Controllers
         /// <response code="409">If the email is already registered</response>
         [HttpPost("register")]
         [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
         public async Task<IActionResult> Register([FromBody] RegisterRequest model)
         {
             try
@@ -42,7 +44,7 @@ namespace Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Registration failed");
-                return BadRequest(new { message = "Registration failed" });
+                return BadRequest(new ErrorResponse("Registration failed"));
             }
         }
 
@@ -57,9 +59,9 @@ namespace Controllers
         /// <response code="403">If the account is locked out</response>
         [HttpPost("login")]
         [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> Login([FromBody] LoginRequest model)
         {
             try
@@ -69,7 +71,7 @@ namespace Controllers
             }
             catch (AuthenticationException ex)
             {
-                return Unauthorized(new { message = ex.Message });
+                return Unauthorized(new ErrorResponse(ex.Message));
             }
         }
 
@@ -83,8 +85,8 @@ namespace Controllers
         /// <response code="401">If the refresh token has expired</response>
         [HttpPost("refresh-token")]
         [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest model)
         {
             try
@@ -94,7 +96,7 @@ namespace Controllers
             }
             catch (Exception ex)
             {
-                return Unauthorized(new { message = ex.Message });
+                return Unauthorized(new ErrorResponse(ex.Message));
             }
         }
     }

@@ -13,14 +13,15 @@ public class LoginRequest
     /// <example>user@example.com</example>
     [Required]
     [EmailAddress]
-    public string Email { get; set; }
+    public required string Email { get; set; }
 
     /// <summary>
     /// User's password
     /// </summary>
     /// <example>SecurePass123!</example>
     [Required]
-    public string Password { get; set; }
+    [MinLength(8)]
+    public required string Password { get; set; }
 }
 
 /// <summary>
@@ -34,7 +35,7 @@ public class RegisterRequest
     /// <example>user@example.com</example>
     [Required]
     [EmailAddress]
-    public string Email { get; set; }
+    public required string Email { get; set; }
 
     /// <summary>
     /// User's password
@@ -42,15 +43,15 @@ public class RegisterRequest
     /// <example>SecurePass123!</example>
     [Required]
     [MinLength(8)]
-    public string Password { get; set; }
+    public required string Password { get; set; }
 
     /// <summary>
     /// Confirmation of the password
     /// </summary>
     /// <example>SecurePass123!</example>
     [Required]
-    [Compare("Password")]
-    public string ConfirmPassword { get; set; }
+    [Compare(nameof(Password))]
+    public required string ConfirmPassword { get; set; }
 }
 
 /// <summary>
@@ -82,5 +83,6 @@ public class AuthResponse
 
 public class RefreshTokenRequest
 {
-    public string RefreshToken { get; set; }
+    [Required]
+    public required string RefreshToken { get; set; }
 } 

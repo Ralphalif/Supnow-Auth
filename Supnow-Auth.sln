@@ -1,0 +1,35 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{D396A2A9-492A-4C04-9F53-937962079547}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Supnow-Auth", "src\Supnow-Auth\Supnow-Auth.csproj", "{C8E1C4E7-3C8F-4D66-9D74-C7E622B239F1}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{A8F9B6DE-5F6C-4211-8B3B-AD63E47D7A58}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Supnow-Auth.Tests", "tests\Supnow-Auth.Tests\Supnow-Auth.Tests.csproj", "{F9E7F3E5-7F3C-4D3F-9D74-C7E622B239F2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C8E1C4E7-3C8F-4D66-9D74-C7E622B239F1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C8E1C4E7-3C8F-4D66-9D74-C7E622B239F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C8E1C4E7-3C8F-4D66-9D74-C7E622B239F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C8E1C4E7-3C8F-4D66-9D74-C7E622B239F1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F9E7F3E5-7F3C-4D3F-9D74-C7E622B239F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F9E7F3E5-7F3C-4D3F-9D74-C7E622B239F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F9E7F3E5-7F3C-4D3F-9D74-C7E622B239F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F9E7F3E5-7F3C-4D3F-9D74-C7E622B239F2}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{C8E1C4E7-3C8F-4D66-9D74-C7E622B239F1} = {D396A2A9-492A-4C04-9F53-937962079547}
+		{F9E7F3E5-7F3C-4D3F-9D74-C7E622B239F2} = {A8F9B6DE-5F6C-4211-8B3B-AD63E47D7A58}
+	EndGlobalSection
+EndGlobal 
