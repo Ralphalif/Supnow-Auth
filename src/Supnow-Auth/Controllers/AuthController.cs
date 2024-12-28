@@ -1,26 +1,14 @@
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Threading.Tasks;
 using Services;
 using Models;
 using System.Security.Authentication;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
 
 namespace Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class AuthController : ControllerBase
+    public class AuthController(IAuthService authService, ILogger<AuthController> logger) : ControllerBase
     {
-        private readonly IAuthService _authService;
-        private readonly ILogger<AuthController> _logger;
-
-        public AuthController(IAuthService authService, ILogger<AuthController> logger)
-        {
-            _authService = authService;
-            _logger = logger;
-        }
 
         /// <summary>
         /// Register a new user
@@ -38,12 +26,12 @@ namespace Controllers
         {
             try
             {
-                var response = await _authService.RegisterAsync(model);
+                var response = await authService.RegisterAsync(model);
                 return Ok(response);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Registration failed");
+                logger.LogError(ex, "Registration failed");
                 return BadRequest(new ErrorResponse("Registration failed"));
             }
         }
@@ -66,7 +54,7 @@ namespace Controllers
         {
             try
             {
-                var response = await _authService.LoginAsync(model);
+                var response = await authService.LoginAsync(model);
                 return Ok(response);
             }
             catch (AuthenticationException ex)
@@ -91,7 +79,7 @@ namespace Controllers
         {
             try
             {
-                var response = await _authService.RefreshTokenAsync(model.RefreshToken);
+                var response = await authService.RefreshTokenAsync(model.RefreshToken);
                 return Ok(response);
             }
             catch (Exception ex)

@@ -1,15 +1,5 @@
-using Microsoft.AspNetCore.Http;
-using System.Threading.Tasks;
-
-public class SecurityHeadersMiddleware
+public class SecurityHeadersMiddleware(RequestDelegate next)
 {
-    private readonly RequestDelegate _next;
-
-    public SecurityHeadersMiddleware(RequestDelegate next)
-    {
-        _next = next;
-    }
-
     public async Task InvokeAsync(HttpContext context)
     {
         // Add security headers
@@ -20,6 +10,6 @@ public class SecurityHeadersMiddleware
         context.Response.Headers.Append("Content-Security-Policy", 
             "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self';");
 
-        await _next(context);
+        await next(context);
     }
 } 
