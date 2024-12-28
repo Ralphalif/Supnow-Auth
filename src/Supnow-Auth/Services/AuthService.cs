@@ -14,13 +14,18 @@ public class AuthService(
     IConfiguration configuration,
     UserManager<ApplicationUser> userManager,
     IEmailService emailService,
+    IMessageBusService messageBus,
     ILogger<AuthService> logger) : IAuthService
 {
     private readonly IConfiguration _configuration = configuration;
+    private readonly UserManager<ApplicationUser> _userManager = userManager;
+    private readonly IEmailService _emailService = emailService;
+    private readonly IMessageBusService _messageBus = messageBus;
+    private readonly ILogger<AuthService> _logger = logger;
 
     public async Task<AuthResponse> LoginAsync(LoginRequest request)
     {
-        var user = await userManager.FindByEmailAsync(request.Email);
+        var user = await _userManager.FindByEmailAsync(request.Email);
         if (user == null)
         {
             await Task.Delay(Random.Shared.Next(100, 500));
@@ -32,7 +37,7 @@ public class AuthService(
             throw new AuthenticationException("Account is temporarily locked. Please try again later.");
         }
 
-        if (!await userManager.CheckPasswordAsync(user, request.Password))
+        if (!await _userManager.CheckPasswordAsync(user, request.Password))
         {
             user.FailedLoginAttempts++;
             user.LastLoginAttempt = DateTime.UtcNow;
@@ -41,10 +46,10 @@ public class AuthService(
             {
                 user.IsLockedOut = true;
                 user.LockoutEnd = DateTime.UtcNow.AddMinutes(15);
-                logger.LogWarning($"Account locked for user {request.Email} due to multiple failed attempts");
+                _logger.LogWarning($"Account locked for user {request.Email} due to multiple failed attempts");
             }
 
-            await userManager.UpdateAsync(user);
+            await _userManager.UpdateAsync(user);
             throw new AuthenticationException("Invalid credentials");
         }
 
@@ -56,9 +61,9 @@ public class AuthService(
         
         user.RefreshToken = refreshToken;
         user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
-        await userManager.UpdateAsync(user);
+        await _userManager.UpdateAsync(user);
 
-        logger.LogInformation($"Successful login for user {user.Email} from IP {GetUserIp()}");
+        _logger.LogInformation($"Successful login for user {user.Email} from IP {GetUserIp()}");
 
         return new AuthResponse
         {
@@ -71,7 +76,7 @@ public class AuthService(
 
     public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
     {
-        if (await userManager.FindByEmailAsync(request.Email) != null)
+        if (await _userManager.FindByEmailAsync(request.Email) != null)
         {
             throw new InvalidOperationException("Email already registered");
         }
@@ -88,17 +93,16 @@ public class AuthService(
             EmailConfirmed = false
         };
 
-        var result = await userManager.CreateAsync(user, request.Password);
+        var result = await _userManager.CreateAsync(user, request.Password);
         if (!result.Succeeded)
         {
             throw new InvalidOperationException(
                 string.Join(", ", result.Errors.Select(e => e.Description)));
         }
 
-  //      var emailToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-//        await _emailService.SendVerificationEmailAsync(user.Email, emailToken);
+        _messageBus.PublishUserRegistered(user.Id, user.Email);
 
-        logger.LogInformation($"New user registered: {user.Email}");
+        _logger.LogInformation($"New user registered: {user.Email}");
         
         return await LoginAsync(new LoginRequest 
         { 
@@ -183,7 +187,7 @@ public class AuthService(
 
     public async Task<AuthResponse> RefreshTokenAsync(string refreshToken)
     {
-        var user = await userManager.Users
+        var user = await _userManager.Users
             .FirstOrDefaultAsync(u => u.RefreshToken == refreshToken);
 
         if (user == null || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
@@ -196,7 +200,7 @@ public class AuthService(
 
         user.RefreshToken = newRefreshToken;
         user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
-        await userManager.UpdateAsync(user);
+        await _userManager.UpdateAsync(user);
 
         return new AuthResponse
         {
@@ -209,7 +213,7 @@ public class AuthService(
 
     public async Task<bool> RevokeTokenAsync(string refreshToken)
     {
-        var user = await userManager.Users
+        var user = await _userManager.Users
             .FirstOrDefaultAsync(u => u.RefreshToken == refreshToken);
 
         if (user == null)
@@ -217,7 +221,7 @@ public class AuthService(
 
         user.RefreshToken = null;
         user.RefreshTokenExpiryTime = DateTime.UtcNow;
-        await userManager.UpdateAsync(user);
+        await _userManager.UpdateAsync(user);
 
         return true;
     }

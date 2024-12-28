@@ -11,11 +11,18 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:80
       - ConnectionStrings__DefaultConnection=Host=auth-db;Database=supnow_auth;Username=postgres;Password=glory2god;Include Error Detail=true
+      - RabbitMQ__Host=rabbitmq
+      - RabbitMQ__Port=5672
+      - RabbitMQ__Username=guest
+      - RabbitMQ__Password=guest
     depends_on:
       auth-db:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     networks:
       - auth-network
+      - supnow-shared-network
     restart: unless-stopped
 
   auth-db:
@@ -37,6 +44,26 @@ services:
       retries: 5
     restart: unless-stopped
 
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"   # AMQP protocol port
+      - "15672:15672" # Management UI port
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    volumes:
+      - ./data/rabbitmq:/var/lib/rabbitmq
+    networks:
+      - auth-network
+      - supnow-shared-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
 volumes:
   postgres_data:
     external: true
@@ -45,3 +72,7 @@ volumes:
 networks:
   auth-network:
     driver: bridge
+  supnow-shared-network:
+    name: supnow-shared-network
+    driver: bridge
+    external: true
