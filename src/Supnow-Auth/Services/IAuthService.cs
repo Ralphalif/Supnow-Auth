@@ -9,4 +9,5 @@ public interface IAuthService
     Task<AuthResponse> RefreshTokenAsync(string refreshToken);
     Task<bool> RevokeTokenAsync(string refreshToken);
     Task<bool> ValidateTokenAsync(string token);
+    Task<AuthResponse> SignInWithAppleAsync(AppleAuthRequest request);
 } 

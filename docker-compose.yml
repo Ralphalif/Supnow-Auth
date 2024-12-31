@@ -25,6 +25,19 @@ services:
       - supnow-shared-network
     restart: unless-stopped
 
+  ngrok:
+    image: ngrok/ngrok:latest
+    environment:
+      - NGROK_AUTHTOKEN=2qzlvm5yNR3IZeMNyiiWokNftsv_6g7Jif77Gi8dsCnY8FJxZ
+    command: http auth-api:80
+    ports:
+      - "4040:4040"
+    depends_on:
+      - auth-api
+    networks:
+      - auth-network
+    restart: unless-stopped
+
   auth-db:
     image: postgres:latest
     environment:

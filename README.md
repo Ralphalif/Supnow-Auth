@@ -1,235 +1,174 @@
-# .NET Core Authentication Service
+# Supnow Authentication Service
 
-A secure authentication service implementation using .NET Core 8.0, featuring JWT tokens, refresh tokens, and various security measures.
+A secure authentication service built with ASP.NET Core 8.0, providing user authentication and authorization features for the Supnow platform.
 
 ## Features
 
+- User registration and login
 - JWT token-based authentication
 - Refresh token mechanism
+- Apple Sign In integration
+- Two-factor authentication support
 - Account lockout protection
 - Password strength validation
-- Two-factor authentication support
-- Rate limiting
 - Email verification
-- Secure password hashing
-- Security headers
-- CORS protection
-- HTTPS enforcement
-- Docker support
-- PostgreSQL database
-- Comprehensive test coverage
-
-## Project Structure
-
-```
-├── src/
-│   └── Supnow-Auth/
-│       ├── Controllers/
-│       │   └── AuthController.cs     # Authentication endpoints
-│       ├── Services/
-│       │   ├── AuthService.cs       # Authentication business logic
-│       │   └── IEmailService.cs     # Email service interface
-│       ├── Models/
-│       │   ├── ApplicationUser.cs   # User entity model
-│       │   ├── AuthModels.cs       # Request/Response models
-│       │   └── ErrorResponse.cs    # Standard error response model
-│       ├── Data/
-│       │   └── ApplicationDbContext.cs # Database context
-│       └── Middleware/
-│           └── SecurityHeadersMiddleware.cs  # Security headers
-├── tests/
-│   └── Supnow-Auth.Tests/
-│       ├── AuthControllerTests.cs   # Controller unit tests
-│       └── AuthServiceTests.cs      # Service unit tests
-├── Dockerfile
-└── docker-compose.yml
-```
+- Message bus integration for event publishing
 
 ## Prerequisites
 
-- .NET Core 8.0
-- Docker and Docker Compose
-- PostgreSQL (containerized or local)
-- SMTP server for email verification
+- .NET 8.0 SDK
+- PostgreSQL 15+
+- RabbitMQ
+- SendGrid account (for email services)
+- Apple Developer Account (for Apple Sign In)
 
-## Development
+## Configuration
 
-### Local Setup
-
-1. Clone the repository
-2. Update configuration in appsettings.json
-3. Run with Docker Compose or locally
-
-### Running Locally
+### 1. Database Setup
 
 ```bash
-dotnet restore
-dotnet build
-dotnet run --project src/Supnow-Auth/Supnow-Auth.csproj
+# Create the database
+createdb supnow_auth
+
+# Apply migrations
+dotnet ef database update
 ```
 
-### Running Tests
+### 2. Environment Configuration
 
-```bash
-# Run all tests
-dotnet test
+Update `appsettings.json` with your configuration:
 
-# Run tests with coverage
-dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=lcov
-
-# Run specific test project
-dotnet test tests/Supnow-Auth.Tests/Supnow-Auth.Tests.csproj
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=localhost;Database=supnow_auth;Username=postgres;Password=your_password"
+  },
+  "RabbitMQ": {
+    "Host": "localhost",
+    "Port": "5672",
+    "Username": "guest",
+    "Password": "guest"
+  },
+  "Jwt": {
+    "Key": "your-super-secret-key-with-at-least-32-characters",
+    "Issuer": "supnow-auth",
+    "Audience": "supnow-clients"
+  },
+  "SmtpSettings": {
+    "Host": "smtp.sendgrid.net",
+    "Port": "587",
+    "Username": "apikey",
+    "Password": "your-sendgrid-api-key-here",
+    "FromEmail": "noreply@supnow.com",
+    "FromName": "Supnow Auth"
+  },
+  "Authentication": {
+    "Apple": {
+      "ClientId": "your.apple.client.id",
+      "TeamId": "your.apple.team.id",
+      "KeyId": "your.apple.key.id",
+      "PrivateKey": "your.apple.private.key"
+    }
+  }
+}
 ```
 
-### Docker Setup
+### 3. Apple Sign In Setup
 
-```bash
-# Build and start the containers
-docker-compose up -d --build
-
-# View logs
-docker-compose logs -f
-
-# Stop containers
-docker-compose down
-```
-
-### Data Persistence
-
-The PostgreSQL data is persisted in a local directory at `./data/postgres`. This ensures:
-- Data survives container restarts and removals
-- Easy access to database files for backup
-- Direct inspection of data files when needed
-
-```bash
-# To completely reset the database (warning: destroys all data)
-rm -rf ./data/postgres/*
-```
-
-The services will be available at:
-- API: http://localhost:5002
-- Database: localhost:5433
+1. Register your app in the Apple Developer Console
+2. Generate a Services ID and configure Sign In with Apple
+3. Create a Key in the Apple Developer Console
+4. Update the Apple authentication settings in `appsettings.json`
 
 ## API Endpoints
 
-### Authentication Endpoints
+### Authentication
 
-#### Register New User
-```http
+- `POST /api/auth/register` - Register a new user
+- `POST /api/auth/login` - Login with email and password
+- `POST /api/auth/apple` - Sign in with Apple
+- `POST /api/auth/refresh-token` - Refresh an expired JWT token
+- `POST /api/auth/revoke` - Revoke a refresh token
+
+### Request Examples
+
+#### Register
+```json
 POST /api/auth/register
-Content-Type: application/json
-
 {
-    "email": "user@example.com",
-    "password": "SecurePass123!",
-    "confirmPassword": "SecurePass123!"
-}
-```
-
-Response:
-```json
-{
-    "token": "eyJhbGciOiJIUzI1NiIs...",
-    "refreshToken": "random-refresh-token",
-    "expiresIn": 3600,
-    "requiresTwoFactor": false
-}
-```
-
-Error Response:
-```json
-{
-    "message": "Registration failed"
+  "email": "user@example.com",
+  "password": "SecurePassword123!",
+  "confirmPassword": "SecurePassword123!"
 }
 ```
 
 #### Login
-```http
+```json
 POST /api/auth/login
-Content-Type: application/json
-
 {
-    "email": "user@example.com",
-    "password": "SecurePass123!"
+  "email": "user@example.com",
+  "password": "SecurePassword123!"
 }
 ```
 
-#### Refresh Token
-```http
-POST /api/auth/refresh-token
-Content-Type: application/json
-
+#### Apple Sign In
+```json
+POST /api/auth/apple
 {
-    "refreshToken": "your-refresh-token"
+  "idToken": "apple.id.token",
+  "authorizationCode": "apple.auth.code",
+  "name": "User Name",  // Optional, only on first sign in
+  "email": "user@example.com"  // Optional, only on first sign in
 }
 ```
 
 ## Security Features
 
-### Authentication Flow
-1. User registers or logs in
-2. System validates credentials
-3. JWT token and refresh token are generated
-4. Tokens are returned to client
-5. Client includes JWT in subsequent requests
+- Password Requirements:
+  - Minimum 8 characters
+  - At least one uppercase letter
+  - At least one lowercase letter
+  - At least one number
+  - At least one special character
+- Account lockout after 5 failed login attempts (15-minute lockout)
+- Secure JWT token generation and validation
+- Email verification for new accounts
+- Apple ID token validation
+- Protection against timing attacks
+- HTTPS enforcement
+- Secure headers middleware
 
-### Account Protection
-- Account lockout after 5 failed attempts
-- 15-minute lockout duration
-- Brute force protection with random delays
-- Rate limiting on authentication endpoints
-
-### Password Security
-- Minimum length: 8 characters
-- Must contain:
-  - Uppercase letters
-  - Lowercase letters
-  - Numbers
-  - Special characters
-- Secure hashing using ASP.NET Core Identity
-
-## Testing
-
-The project includes comprehensive unit tests for both controllers and services:
-
-### Controller Tests
-- Registration validation
-- Login authentication
-- Token refresh
-- Error handling
-- Response type validation
-
-### Service Tests
-- User registration logic
-- Login validation
-- Token generation and validation
-- Password strength validation
-- Account lockout functionality
-
-### Running Tests with Coverage
+## Development
 
 ```bash
-dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=lcov /p:CoverletOutput=./lcov.info
+# Restore dependencies
+dotnet restore
+
+# Run the application
+dotnet run --project src/Supnow-Auth/Supnow-Auth.csproj
+
+# Run tests
+dotnet test
+```
+
+## Docker Support
+
+```bash
+# Build the container
+docker build -t supnow-auth .
+
+# Run with Docker Compose
+docker-compose up
 ```
 
 ## Contributing
 
 1. Fork the repository
 2. Create a feature branch
-3. Add tests for new functionality
-4. Ensure all tests pass
+3. Commit your changes
+4. Push to the branch
 5. Create a Pull Request
 
 ## License
 
-This project is licensed under the MIT License
-
-## Support
-
-For support:
-1. Check existing issues
-2. Create a new issue with:
-   - Clear description
-   - Steps to reproduce
-   - Expected behavior
-   - Actual behavior
+This project is licensed under the MIT License - see the LICENSE file for details.

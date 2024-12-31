@@ -37,6 +37,7 @@ public class AuthServiceTests
         _mockConfiguration = new Mock<IConfiguration>();
         _mockEmailService = new Mock<IEmailService>();
         _mockLogger = new Mock<ILogger<AuthService>>();
+        var mockMessageBus = new Mock<IMessageBusService>();
 
         // Setup configuration
         var mockConfigSection = new Mock<IConfigurationSection>();
@@ -49,6 +50,7 @@ public class AuthServiceTests
             _mockConfiguration.Object,
             _mockUserManager.Object,
             _mockEmailService.Object,
+            mockMessageBus.Object,
             _mockLogger.Object
         );
     }

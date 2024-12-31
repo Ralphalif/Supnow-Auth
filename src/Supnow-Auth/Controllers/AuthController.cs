@@ -87,5 +87,35 @@ namespace Controllers
                 return Unauthorized(new ErrorResponse(ex.Message));
             }
         }
+
+        /// <summary>
+        /// Authenticate with Apple ID
+        /// </summary>
+        /// <param name="model">Apple authentication details including ID token</param>
+        /// <returns>Authentication result with JWT token</returns>
+        /// <response code="200">Returns the authentication token</response>
+        /// <response code="400">If the Apple ID token is invalid</response>
+        /// <response code="401">If authentication fails</response>
+        [HttpPost("apple")]
+        [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> SignInWithApple([FromBody] AppleAuthRequest model)
+        {
+            try
+            {
+                var response = await authService.SignInWithAppleAsync(model);
+                return Ok(response);
+            }
+            catch (AuthenticationException ex)
+            {
+                return Unauthorized(new ErrorResponse(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Apple Sign In failed");
+                return BadRequest(new ErrorResponse("Apple Sign In failed"));
+            }
+        }
     }
 } 
