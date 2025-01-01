@@ -134,6 +134,7 @@ builder.Services.AddLogging(logging =>
 {
     logging.AddConsole();
     logging.AddDebug();
+    logging.SetMinimumLevel(LogLevel.Debug);
 });
 
 // Add rate limiting
@@ -181,6 +182,10 @@ builder.Services.Configure<IdentityOptions>(options =>
 });
 
 var app = builder.Build();
+
+// Verify RabbitMQ connection at startup
+var messageBus = app.Services.GetRequiredService<IMessageBusService>();
+app.Logger.LogInformation("RabbitMQ service initialized");
 
 // Apply migrations with retry logic
 using (var scope = app.Services.CreateScope())

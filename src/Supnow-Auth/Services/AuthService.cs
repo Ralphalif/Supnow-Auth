@@ -100,7 +100,7 @@ public class AuthService(
                 string.Join(", ", result.Errors.Select(e => e.Description)));
         }
 
-        _messageBus.PublishUserRegistered(user.Id, user.Email);
+        _messageBus.PublishUserRegistered(user.Id, user.UserName, user.Email);
 
         _logger.LogInformation($"New user registered: {user.Email}");
 
@@ -184,6 +184,34 @@ public class AuthService(
         using var rng = RandomNumberGenerator.Create();
         rng.GetBytes(randomNumber);
         return Convert.ToBase64String(randomNumber);
+    }
+
+    private static string GenerateFriendlyUsername()
+    {
+        var adjectives = new[] {
+            "Happy", "Clever", "Brave", "Gentle", "Swift", "Bright", "Warm", "Cool", 
+            "Noble", "Kind", "Wild", "Calm", "Bold", "Smart", "Fresh", "Wise",
+            "Mighty", "Sunny", "Lucky", "Jolly", "Witty", "Proud", "Fancy", "Eager",
+            "Lively", "Merry", "Cosmic", "Rapid", "Royal", "Magic", "Super", "Perky",
+            "Shiny", "Mystic", "Crazy", "Funky", "Sweet", "Silly", "Quiet", "Sleepy",
+            "Ninja", "Cyber", "Hyper", "Mega", "Ultra", "Epic", "Alpha", "Prime"
+        };
+        
+        var nouns = new[] {
+            "Panda", "Tiger", "Eagle", "Dolphin", "Lion", "Wolf", "Bear", "Fox",
+            "Hawk", "Owl", "Dragon", "Phoenix", "Unicorn", "Falcon", "Raven", "Teddy",
+            "Koala", "Penguin", "Shark", "Whale", "Monkey", "Zebra", "Turtle", "Rabbit",
+            "Jaguar", "Panther", "Lynx", "Leopard", "Rhino", "Giraffe", "Gorilla", "Seal",
+            "Octopus", "Raccoon", "Badger", "Beaver", "Cheetah", "Cobra", "Condor", "Cougar",
+            "Coyote", "Deer", "Elephant", "Gazelle", "Hamster", "Hedgehog", "Hippo", "Llama"
+        };
+
+        var random = new Random();
+        var adjective = adjectives[random.Next(adjectives.Length)];
+        var noun = nouns[random.Next(nouns.Length)];
+        var number = random.Next(100, 10000);
+
+        return $"{adjective}_{noun}{number}";
     }
 
     public async Task<AuthResponse> RefreshTokenAsync(string refreshToken)
@@ -322,7 +350,7 @@ public class AuthService(
 
         if (user == null)
         {
-            // Generate a temporary email using their Apple User ID
+            var username = GenerateFriendlyUsername();
             var tempEmail = $"apple_{appleSubClaim}@supnow.temp";
             _logger.LogWarning($"Creating new user with temporary email: {tempEmail}");
 
@@ -330,7 +358,7 @@ public class AuthService(
             {
                 user = new ApplicationUser
                 {
-                    UserName = tempEmail,
+                    UserName = username,
                     Email = tempEmail,
                     EmailConfirmed = true, // Mark as confirmed since we generated it
                     AppleUserId = appleSubClaim
@@ -344,7 +372,7 @@ public class AuthService(
                     throw new InvalidOperationException($"Failed to create user: {errors}");
                 }
 
-                _messageBus.PublishUserRegistered(user.Id, tempEmail);
+                _messageBus.PublishUserRegistered(user.Id, user.UserName, tempEmail);
                 _logger.LogWarning($"New user registered via Apple with temporary email: {tempEmail}");
             }
             catch (Exception ex)

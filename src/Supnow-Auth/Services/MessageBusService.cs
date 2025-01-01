@@ -6,7 +6,7 @@ namespace Services;
 
 public interface IMessageBusService
 {
-    void PublishUserRegistered(string userId, string email);
+    void PublishUserRegistered(string userId, string username, string email);
 }
 
 public class MessageBusService : IMessageBusService, IDisposable
@@ -16,6 +16,7 @@ public class MessageBusService : IMessageBusService, IDisposable
     private readonly ILogger<MessageBusService> _logger;
     private const string ExchangeName = "user_events";
     private const string RoutingKeyUserRegistered = "user.registered";
+    private const string QueueName = "user_created";
 
     public MessageBusService(IConfiguration configuration, ILogger<MessageBusService> logger)
     {
@@ -34,10 +35,51 @@ public class MessageBusService : IMessageBusService, IDisposable
             _connection = factory.CreateConnection();
             _channel = _connection.CreateModel();
 
-            // Declare exchange
-            _channel.ExchangeDeclare(ExchangeName, ExchangeType.Topic, durable: true);
+            _logger.LogInformation("RabbitMQ connection established. Configuring exchange and queue...");
 
-            _logger.LogInformation("RabbitMQ connection established");
+            try
+            {
+                // Declare exchange
+                _logger.LogInformation("Declaring exchange: {ExchangeName} of type {ExchangeType}", ExchangeName, ExchangeType.Topic);
+                _channel.ExchangeDeclare(
+                    exchange: ExchangeName,
+                    type: ExchangeType.Topic,
+                    durable: true,
+                    autoDelete: false,
+                    arguments: null);
+
+                // Declare queue with more explicit configuration
+                _logger.LogInformation("Declaring queue: {QueueName}", QueueName);
+                var queueDeclareResult = _channel.QueueDeclare(
+                    queue: QueueName,
+                    durable: true,
+                    exclusive: false,
+                    autoDelete: false,
+                    arguments: new Dictionary<string, object>
+                    {
+                        { "x-queue-type", "classic" }
+                    });
+
+                _logger.LogInformation("Queue declared successfully. Queue info - Messages: {MessageCount}, Consumers: {ConsumerCount}",
+                    queueDeclareResult.MessageCount,
+                    queueDeclareResult.ConsumerCount);
+
+                // Bind queue to exchange
+                _logger.LogInformation("Binding queue {QueueName} to exchange {ExchangeName} with routing key {RoutingKey}",
+                    QueueName, ExchangeName, RoutingKeyUserRegistered);
+
+                _channel.QueueBind(
+                    queue: QueueName,
+                    exchange: ExchangeName,
+                    routingKey: RoutingKeyUserRegistered);
+
+                _logger.LogInformation("RabbitMQ configuration completed successfully");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to configure RabbitMQ exchange and queue");
+                throw;
+            }
         }
         catch (Exception ex)
         {
@@ -46,13 +88,13 @@ public class MessageBusService : IMessageBusService, IDisposable
         }
     }
 
-    public void PublishUserRegistered(string userId, string email)
+    public void PublishUserRegistered(string userId, string username, string email)
     {
         var message = new
         {
-            UserId = userId,
-            Email = email,
-            Timestamp = DateTime.UtcNow
+            Id = userId,
+            Username = username,
+            Email = email
         };
 
         var json = JsonSerializer.Serialize(message);
