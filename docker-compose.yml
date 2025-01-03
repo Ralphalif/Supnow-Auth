@@ -27,7 +27,7 @@ services:
     image: ngrok/ngrok:latest
     environment:
       - NGROK_AUTHTOKEN=2qzlvm5yNR3IZeMNyiiWokNftsv_6g7Jif77Gi8dsCnY8FJxZ
-    command: http auth-api:80
+    command: http --domain=humble-many-zebra.ngrok-free.app auth-api:80
     ports:
       - "4040:4040"
     depends_on:
