@@ -117,5 +117,35 @@ namespace Controllers
                 return BadRequest(new ErrorResponse("Apple Sign In failed"));
             }
         }
+
+        /// <summary>
+        /// Authenticate with Google
+        /// </summary>
+        /// <param name="model">Google authentication details including ID token</param>
+        /// <returns>Authentication result with JWT token</returns>
+        /// <response code="200">Returns the authentication token</response>
+        /// <response code="400">If the Google ID token is invalid</response>
+        /// <response code="401">If authentication fails</response>
+        [HttpPost("google")]
+        [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> SignInWithGoogle([FromBody] GoogleAuthRequest model)
+        {
+            try
+            {
+                var response = await authService.SignInWithGoogleAsync(model);
+                return Ok(response);
+            }
+            catch (AuthenticationException ex)
+            {
+                return Unauthorized(new ErrorResponse(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Google Sign In failed");
+                return BadRequest(new ErrorResponse("Google Sign In failed"));
+            }
+        }
     }
 } 

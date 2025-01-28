@@ -11,4 +11,5 @@ public class ApplicationUser : IdentityUser
     public bool IsLockedOut { get; set; }
     public string? TwoFactorSecretKey { get; set; }
     public string? AppleUserId { get; set; }
+    public string? GoogleUserId { get; set; }
 } 

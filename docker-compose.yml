@@ -22,20 +22,7 @@ services:
       - auth-network
       - supnow-shared-network
     restart: unless-stopped
-
-  ngrok:
-    image: ngrok/ngrok:latest
-    environment:
-      - NGROK_AUTHTOKEN=2qzlvm5yNR3IZeMNyiiWokNftsv_6g7Jif77Gi8dsCnY8FJxZ
-    command: http --domain=humble-many-zebra.ngrok-free.app auth-api:80
-    ports:
-      - "4040:4040"
-    depends_on:
-      - auth-api
-    networks:
-      - auth-network
-    restart: unless-stopped
-
+    
   auth-db:
     image: postgres:latest
     environment:
@@ -66,4 +53,6 @@ networks:
   supnow-shared-network:
     name: supnow-shared-network
     driver: bridge
+    external: true
+  proxy:
     external: true

@@ -10,4 +10,5 @@ public interface IAuthService
     Task<bool> RevokeTokenAsync(string refreshToken);
     Task<bool> ValidateTokenAsync(string token);
     Task<AuthResponse> SignInWithAppleAsync(AppleAuthRequest request);
+    Task<AuthResponse> SignInWithGoogleAsync(GoogleAuthRequest request);
 } 

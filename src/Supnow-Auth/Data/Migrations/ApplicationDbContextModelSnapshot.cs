@@ -185,6 +185,9 @@ namespace SupnowAuth.Data.Migrations
                     b.Property<int>("FailedLoginAttempts")
                         .HasColumnType("integer");
 
+                    b.Property<string>("GoogleUserId")
+                        .HasColumnType("text");
+
                     b.Property<bool>("IsLockedOut")
                         .HasColumnType("boolean");
 
