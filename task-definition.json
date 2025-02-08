@@ -1,0 +1,36 @@
+{
+    "family": "somo-auth-task",
+    "networkMode": "awsvpc",
+    "requiresCompatibilities": ["FARGATE"],
+    "cpu": "1024",
+    "memory": "2048",
+    "executionRoleArn": "arn:aws:iam::976193261232:role/ecsTaskExecutionRole",
+    "taskRoleArn": "arn:aws:iam::976193261232:role/ecsTaskRole",
+    "containerDefinitions": [
+        {
+            "name": "somo-auth-dev",
+            "image": "976193261232.dkr.ecr.eu-north-1.amazonaws.com/somo/auth-api:latest",
+            "portMappings": [
+                {
+                    "containerPort": 80,
+                    "protocol": "tcp"
+                }
+            ],
+            "essential": true,
+            "environment": [
+                {
+                    "name": "ASPNETCORE_ENVIRONMENT",
+                    "value": "Development"
+                }
+            ],
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "/ecs/somo-auth",
+                    "awslogs-region": "eu-north-1",
+                    "awslogs-stream-prefix": "ecs"
+                }
+            }
+        }
+    ]
+} 
