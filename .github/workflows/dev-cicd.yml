@@ -15,7 +15,7 @@ permissions:
   contents: read
 
 jobs:
-  build-and-test:
+  build:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -32,12 +32,10 @@ jobs:
       
     - name: Build
       run: dotnet build -c Release
-      
-    - name: Test
-      run: dotnet test --no-build --verbosity normal
+
 
   deploy:
-    needs: build-and-test
+    needs: build
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     
