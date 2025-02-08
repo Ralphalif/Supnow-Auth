@@ -125,7 +125,6 @@ builder.Services.AddAuthentication(options =>
 
 // Register application services
 builder.Services.AddSingleton<IMessageBusService, MessageBusService>();
-builder.Services.AddTransient<IEmailService, EmailService>();
 builder.Services.AddTransient<IAuthService, AuthService>();
 
 // Add logging

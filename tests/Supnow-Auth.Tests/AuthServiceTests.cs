@@ -16,7 +16,6 @@ public class AuthServiceTests
 {
     private readonly Mock<UserManager<ApplicationUser>> _mockUserManager;
     private readonly Mock<IConfiguration> _mockConfiguration;
-    private readonly Mock<IEmailService> _mockEmailService;
     private readonly Mock<ILogger<AuthService>> _mockLogger;
     private readonly AuthService _service;
 
@@ -35,7 +34,6 @@ public class AuthServiceTests
             It.IsAny<ILogger<UserManager<ApplicationUser>>>());
             
         _mockConfiguration = new Mock<IConfiguration>();
-        _mockEmailService = new Mock<IEmailService>();
         _mockLogger = new Mock<ILogger<AuthService>>();
         var mockMessageBus = new Mock<IMessageBusService>();
 
@@ -49,7 +47,6 @@ public class AuthServiceTests
         _service = new AuthService(
             _mockConfiguration.Object,
             _mockUserManager.Object,
-            _mockEmailService.Object,
             mockMessageBus.Object,
             _mockLogger.Object
         );

@@ -13,13 +13,11 @@ namespace Services;
 public class AuthService(
     IConfiguration configuration,
     UserManager<ApplicationUser> userManager,
-    IEmailService emailService,
     IMessageBusService messageBus,
     ILogger<AuthService> logger) : IAuthService
 {
     private readonly IConfiguration _configuration = configuration;
     private readonly UserManager<ApplicationUser> _userManager = userManager;
-    private readonly IEmailService _emailService = emailService;
     private readonly IMessageBusService _messageBus = messageBus;
     private readonly ILogger<AuthService> _logger = logger;
 
