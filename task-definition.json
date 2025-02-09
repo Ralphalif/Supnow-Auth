@@ -10,9 +10,11 @@
         {
             "name": "somo-auth-dev",
             "image": "976193261232.dkr.ecr.eu-north-1.amazonaws.com/somo/auth-api:latest",
+            "cpu": 0,
             "portMappings": [
                 {
                     "containerPort": 80,
+                    "hostPort": 80,
                     "protocol": "tcp"
                 }
             ],
@@ -21,8 +23,36 @@
                 {
                     "name": "ASPNETCORE_ENVIRONMENT",
                     "value": "Development"
+                },
+                {
+                    "name": "RabbitMQ__Port",
+                    "value": "5671"
+                },
+                {
+                    "name": "RabbitMQ__UseSsl",
+                    "value": "true"
                 }
             ],
+            "secrets": [
+                {
+                    "name": "RabbitMQ__Host",
+                    "valueFrom": "arn:aws:secretsmanager:eu-north-1:976193261232:secret:somo/dev/somo-mq:host::"
+                },
+                {
+                    "name": "RabbitMQ__Username",
+                    "valueFrom": "arn:aws:secretsmanager:eu-north-1:976193261232:secret:somo/dev/somo-mq:username::"
+                },
+                {
+                    "name": "RabbitMQ__Password",
+                    "valueFrom": "arn:aws:secretsmanager:eu-north-1:976193261232:secret:somo/dev/somo-mq:password::"
+                },
+                {
+                    "name": "ConnectionStrings__DefaultConnection",
+                    "valueFrom": "arn:aws:secretsmanager:eu-north-1:976193261232:secret:supnow/dev/auth-db:connection::"
+                }
+            ],
+            "mountPoints": [],
+            "volumesFrom": [],
             "logConfiguration": {
                 "logDriver": "awslogs",
                 "options": {

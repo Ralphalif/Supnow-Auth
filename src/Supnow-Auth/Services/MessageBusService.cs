@@ -29,8 +29,16 @@ public class MessageBusService : IMessageBusService, IDisposable
                 HostName = configuration["RabbitMQ:Host"] ?? "localhost",
                 Port = int.Parse(configuration["RabbitMQ:Port"] ?? "5672"),
                 UserName = configuration["RabbitMQ:Username"] ?? "guest",
-                Password = configuration["RabbitMQ:Password"] ?? "guest"
+                Password = configuration["RabbitMQ:Password"] ?? "guest",
+                Ssl = new SslOption
+                {
+                    Enabled = bool.Parse(configuration["RabbitMQ:UseSsl"] ?? "false"),
+                    ServerName = configuration["RabbitMQ:Host"] ?? "localhost"
+                }
             };
+
+            _logger.LogInformation("Connecting to RabbitMQ at {Host}:{Port} with SSL {SslEnabled}", 
+                factory.HostName, factory.Port, factory.Ssl.Enabled);
 
             _connection = factory.CreateConnection();
             _channel = _connection.CreateModel();

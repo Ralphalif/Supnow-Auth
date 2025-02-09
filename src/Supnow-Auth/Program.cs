@@ -64,10 +64,8 @@ builder.Services.AddSwaggerGen(options =>
 // Add PostgreSQL support
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
-    var connectionString = builder.Environment.IsDevelopment() 
-        ? configuration.GetConnectionString("DefaultConnection")
-        : configuration.GetConnectionString("DockerConnection");
-
+    var connectionString = configuration.GetConnectionString("DefaultConnection")!;
+    
     options.UseNpgsql(
         connectionString,
         npgsqlOptions => 
